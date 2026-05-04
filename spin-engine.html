@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPIN Engine — Treble</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0f0f12;
+  --ink2:#1c1c22;
+  --ink3:#26262f;
+  --line:#e2e1dc;
+  --line2:#cccac3;
+  --mist:#f5f4f0;
+  --paper:#faf9f6;
+  --acc:#1a1aff;
+  --acc-l:#ededff;
+  --acc-d:#0000cc;
+  --gold:#c8a84b;
+  --gold-l:#fdf6e3;
+  --grn:#0a7c4e;
+  --grn-l:#e6f7f0;
+  --red:#c0392b;
+  --red-l:#fdecea;
+  --txt:#0f0f12;
+  --txt2:#4a4a58;
+  --txt3:#888898;
+  --serif:'Instrument Serif',Georgia,serif;
+  --sans:'DM Sans',sans-serif;
+  --mono:'DM Mono',monospace;
+  --r:10px;
+  --r2:16px;
+}
+html{font-size:16px}
+body{
+  background:var(--paper);
+  color:var(--txt);
+  font-family:var(--sans);
+  min-height:100vh;
+  line-height:1.6;
+}
+
+/* ─── LAYOUT ─── */
+.shell{display:flex;min-height:100vh}
+.sidebar{
+  width:240px;flex-shrink:0;
+  background:var(--ink);
+  padding:28px 0;
+  display:flex;flex-direction:column;
+  position:fixed;top:0;left:0;height:100vh;
+  z-index:10;
+}
+.main{margin-left:240px;flex:1;padding:40px 48px 80px;max-width:860px}
+
+/* ─── SIDEBAR ─── */
+.brand{
+  padding:0 24px 28px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  margin-bottom:20px;
+}
+.brand-mark{
+  font-family:var(--serif);
+  font-size:22px;
+  color:#fff;
+  letter-spacing:-.3px;
+  line-height:1;
+  margin-bottom:4px;
+}
+.brand-sub{
+  font-size:11px;
+  font-family:var(--mono);
+  color:rgba(255,255,255,.35);
+  letter-spacing:.8px;
+  text-transform:uppercase;
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 24px;
+  font-size:13px;
+  font-weight:500;
+  color:rgba(255,255,255,.45);
+  cursor:pointer;
+  transition:all .15s;
+  border-left:2px solid transparent;
+  text-decoration:none;
+}
+.nav-item:hover{color:rgba(255,255,255,.8);background:rgba(255,255,255,.04)}
+.nav-item.active{color:#fff;border-left-color:var(--acc);background:rgba(26,26,255,.12)}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.6}
+.nav-section{
+  padding:16px 24px 6px;
+  font-size:10px;
+  font-family:var(--mono);
+  color:rgba(255,255,255,.2);
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+}
+.sidebar-bottom{margin-top:auto;padding:20px 24px;border-top:1px solid rgba(255,255,255,.07)}
+.settings-link{
+  font-size:12px;color:rgba(255,255,255,.3);
+  font-family:var(--mono);cursor:pointer;
+  transition:color .15s;
+}
+.settings-link:hover{color:rgba(255,255,255,.6)}
+
+/* ─── PAGES ─── */
+.page{display:none}
+.page.active{display:block}
+
+/* ─── HEADER ─── */
+.page-header{margin-bottom:36px}
+.page-title{
+  font-family:var(--serif);
+  font-size:36px;
+  font-weight:400;
+  letter-spacing:-.5px;
+  line-height:1.1;
+  color:var(--ink);
+  margin-bottom:8px;
+}
+.page-title em{font-style:italic;color:var(--acc)}
+.page-desc{font-size:14px;color:var(--txt3);line-height:1.5;max-width:520px}
+
+/* ─── STEP FLOW ─── */
+.steps{display:flex;align-items:center;gap:0;margin-bottom:32px}
+.step{
+  display:flex;align-items:center;gap:8px;
+  font-size:12px;font-family:var(--mono);
+  color:var(--txt3);
+}
+.step.done .step-n{background:var(--grn);color:#fff;border-color:var(--grn)}
+.step.active .step-n{background:var(--acc);color:#fff;border-color:var(--acc)}
+.step-n{
+  width:22px;height:22px;border-radius:50%;
+  border:1.5px solid var(--line2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:500;transition:all .3s;
+}
+.step-line{width:32px;height:1px;background:var(--line);margin:0 4px}
+
+/* ─── CARD ─── */
+.card{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:var(--r2);
+  padding:24px;
+  margin-bottom:16px;
+  transition:border-color .2s;
+}
+.card:focus-within{border-color:var(--acc)}
+.card-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:14px;
+}
+.card-label{
+  font-size:11px;font-family:var(--mono);
+  color:var(--acc);letter-spacing:1px;
+  text-transform:uppercase;font-weight:500;
+}
+.card-hint{font-size:11px;color:var(--txt3);font-family:var(--mono)}
+
+/* ─── INPUTS ─── */
+input,textarea{
+  width:100%;
+  background:var(--mist);
+  border:1.5px solid transparent;
+  border-radius:var(--r);
+  color:var(--txt);
+  font-family:var(--sans);
+  font-size:14px;
+  padding:11px 14px;
+  outline:none;
+  transition:all .2s;
+  resize:none;
+  line-height:1.6;
+}
+input:focus,textarea:focus{
+  background:#fff;
+  border-color:var(--acc);
+  box-shadow:0 0 0 3px var(--acc-l);
+}
+input::placeholder,textarea::placeholder{color:var(--txt3)}
+input[type=password]{letter-spacing:.05em}
+
+/* ─── CONTACT PILL ─── */
+.contact-pill{
+  display:none;align-items:center;gap:12px;
+  margin-top:12px;padding:12px 16px;
+  background:var(--grn-l);
+  border:1px solid rgba(10,124,78,.15);
+  border-radius:var(--r);
+  animation:fadeUp .3s ease;
+}
+.contact-pill.show{display:flex}
+.avatar{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--grn);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:600;flex-shrink:0;
+  font-family:var(--sans);
+}
+.c-name{font-size:14px;font-weight:600;color:var(--ink)}
+.c-email{font-size:12px;color:var(--txt2);font-family:var(--mono)}
+.c-company{font-size:11px;color:var(--txt3);margin-top:1px}
+.pill-status{font-size:11px;font-family:var(--mono);color:var(--grn);margin-left:auto;white-space:nowrap}
+
+/* ─── SPIN CARDS ─── */
+.spin-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+.spin-block{
+  background:var(--mist);
+  border:1.5px solid var(--line);
+  border-radius:var(--r2);
+  padding:18px;
+  transition:border-color .2s,background .2s;
+}
+.spin-block:focus-within{background:#fff;border-color:var(--acc)}
+.spin-top{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+.spin-letter{
+  font-family:var(--serif);
+  font-size:42px;line-height:1;
+  color:var(--acc);opacity:.18;
+  font-style:italic;
+}
+.spin-name{
+  font-size:11px;font-weight:600;
+  color:var(--txt2);letter-spacing:.7px;
+  text-transform:uppercase;
+}
+.spin-block textarea{
+  background:transparent;border:none;
+  padding:0;font-size:13px;line-height:1.7;
+  min-height:90px;color:var(--txt);
+}
+.spin-block textarea:focus{background:transparent;border:none;box-shadow:none}
+
+/* ─── SIGNALS ─── */
+.signals-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.sig-wrap label{
+  display:block;font-size:11px;font-family:var(--mono);
+  color:var(--txt3);margin-bottom:5px;letter-spacing:.5px;
+  text-transform:uppercase;
+}
+select{
+  width:100%;background:var(--mist);
+  border:1.5px solid transparent;border-radius:var(--r);
+  color:var(--txt);font-family:var(--sans);font-size:13px;
+  padding:9px 12px;outline:none;cursor:pointer;
+  appearance:none;transition:all .2s;
+}
+select:focus{background:#fff;border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-l)}
+
+/* ─── LOADING STATE ─── */
+.shimmer{
+  background:linear-gradient(90deg,var(--mist) 25%,var(--line) 50%,var(--mist) 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.3s infinite;
+  border-radius:4px;height:14px;margin-bottom:8px;
+}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.progress-bar{
+  height:2px;background:var(--line);border-radius:2px;
+  overflow:hidden;margin:12px 0;display:none;
+}
+.progress-bar.show{display:block}
+.progress-fill{
+  height:100%;width:0;background:var(--acc);
+  border-radius:2px;transition:width .4s ease;
+}
+
+/* ─── BUTTONS ─── */
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:20px}
+.btn{
+  border:none;border-radius:var(--r);
+  font-family:var(--sans);font-weight:600;
+  font-size:14px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:8px;
+  transition:all .18s;padding:11px 20px;
+  white-space:nowrap;
+}
+.btn:disabled{opacity:.45;pointer-events:none}
+.btn-primary{
+  background:var(--acc);color:#fff;
+  padding:12px 28px;font-size:15px;
+}
+.btn-primary:hover{background:var(--acc-d);transform:translateY(-1px);box-shadow:0 4px 16px rgba(26,26,255,.25)}
+.btn-primary:active{transform:none}
+.btn-primary.success{background:var(--grn)}
+.btn-primary.loading{opacity:.7;pointer-events:none}
+.btn-secondary{background:var(--mist);color:var(--txt2);border:1.5px solid var(--line)}
+.btn-secondary:hover{border-color:var(--line2);background:var(--line)}
+.btn-gen{
+  background:var(--acc-l);color:var(--acc);
+  border:1.5px solid rgba(26,26,255,.2);
+}
+.btn-gen:hover{background:var(--acc);color:#fff;border-color:var(--acc)}
+.btn-ghost{background:transparent;color:var(--txt3);font-size:13px;padding:8px 12px}
+.btn-ghost:hover{color:var(--txt2)}
+
+/* ─── STATUS ─── */
+.status-bar{
+  display:none;padding:11px 16px;border-radius:var(--r);
+  font-size:13px;font-family:var(--mono);margin-top:12px;
+  animation:fadeUp .25s ease;
+}
+.status-bar.show{display:flex;align-items:center;gap:8px}
+.status-bar.ok{background:var(--grn-l);color:var(--grn);border:1px solid rgba(10,124,78,.2)}
+.status-bar.err{background:var(--red-l);color:var(--red);border:1px solid rgba(192,57,43,.2)}
+.status-bar.inf{background:var(--acc-l);color:var(--acc);border:1px solid rgba(26,26,255,.2)}
+
+/* ─── SETTINGS PAGE ─── */
+.settings-card{background:#fff;border:1px solid var(--line);border-radius:var(--r2);padding:28px;margin-bottom:16px}
+.settings-title{font-size:15px;font-weight:600;margin-bottom:4px}
+.settings-desc{font-size:13px;color:var(--txt3);margin-bottom:18px;line-height:1.5}
+.field-row{margin-bottom:14px}
+.field-label{font-size:12px;font-family:var(--mono);color:var(--txt2);margin-bottom:6px;letter-spacing:.3px}
+.save-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:11px;font-family:var(--mono);color:var(--grn);
+  background:var(--grn-l);padding:4px 10px;border-radius:20px;
+  opacity:0;transition:opacity .3s;
+}
+.save-badge.show{opacity:1}
+
+/* ─── HISTORY ─── */
+.history-empty{
+  text-align:center;padding:60px 20px;
+  color:var(--txt3);font-size:14px;
+}
+.history-empty .big{font-family:var(--serif);font-size:28px;color:var(--line2);display:block;margin-bottom:8px}
+.hist-item{
+  background:#fff;border:1px solid var(--line);border-radius:var(--r2);
+  padding:18px 22px;margin-bottom:10px;cursor:pointer;
+  transition:all .15s;
+}
+.hist-item:hover{border-color:var(--acc);transform:translateX(3px)}
+.hist-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.hist-name{font-weight:600;font-size:14px}
+.hist-date{font-size:11px;font-family:var(--mono);color:var(--txt3)}
+.hist-company{font-size:13px;color:var(--txt2)}
+.hist-preview{font-size:12px;color:var(--txt3);margin-top:6px;line-height:1.5;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hist-tag{
+  display:inline-block;font-size:10px;font-family:var(--mono);
+  padding:3px 8px;border-radius:20px;margin-top:8px;
+  background:var(--grn-l);color:var(--grn);
+}
+
+/* ─── DIVIDER ─── */
+.divider{height:1px;background:var(--line);margin:20px 0}
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeUp .35s ease both}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:700px){
+  .sidebar{display:none}
+  .main{margin-left:0;padding:24px 16px 60px}
+  .spin-grid,.signals-row{grid-template-columns:1fr}
+}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:2px}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+<!-- ─── SIDEBAR ─── -->
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-mark">SPIN Engine</div>
+    <div class="brand-sub">Treble Net New</div>
+  </div>
+  <div class="nav-section">Workflow</div>
+  <a class="nav-item active" onclick="showPage('new')">
+    <span class="nav-dot"></span> Nova análise
+  </a>
+  <a class="nav-item" onclick="showPage('history')">
+    <span class="nav-dot"></span> Histórico
+  </a>
+  <div class="nav-section" style="margin-top:8px">Sistema</div>
+  <a class="nav-item" onclick="showPage('settings')">
+    <span class="nav-dot"></span> Configurações
+  </a>
+  <div class="sidebar-bottom">
+    <div class="settings-link" onclick="showPage('settings')">⚙ Token HubSpot</div>
+  </div>
+</aside>
+
+<!-- ─── MAIN ─── -->
+<main class="main">
+
+  <!-- ══════════ PAGE: NOVA ANÁLISE ══════════ -->
+  <div class="page active" id="page-new">
+
+    <div class="page-header fade-in">
+      <h1 class="page-title">Nova <em>análise</em> SPIN</h1>
+      <p class="page-desc">Cole o link do deal e a transcrição do Gong. O Claude analisa e posta direto no HubSpot.</p>
+    </div>
+
+    <div class="steps" id="steps">
+      <div class="step active" id="step1"><div class="step-n">1</div><span>Deal</span></div>
+      <div class="step-line"></div>
+      <div class="step" id="step2"><div class="step-n">2</div><span>Transcrição</span></div>
+      <div class="step-line"></div>
+      <div class="step" id="step3"><div class="step-n">3</div><span>SPIN</span></div>
+      <div class="step-line"></div>
+      <div class="step" id="step4"><div class="step-n">4</div><span>Postar</span></div>
+    </div>
+
+    <!-- Deal -->
+    <div class="card fade-in" style="animation-delay:.05s">
+      <div class="card-head">
+        <span class="card-label">Deal no HubSpot</span>
+        <span class="card-hint" id="deal-id-preview"></span>
+      </div>
+      <input type="text" id="hs-link"
+        placeholder="https://app.hubspot.com/contacts/7142894/record/0-3/59367574197"
+        oninput="onDealInput(this.value)">
+      <div class="contact-pill" id="contact-pill">
+        <div class="avatar" id="av">?</div>
+        <div>
+          <div class="c-name" id="c-name">—</div>
+          <div class="c-email" id="c-email"></div>
+          <div class="c-company" id="c-company"></div>
+        </div>
+        <div class="pill-status" id="pill-status">✓ contato encontrado</div>
+      </div>
+    </div>
+
+    <!-- Transcript -->
+    <div class="card fade-in" style="animation-delay:.1s">
+      <div class="card-head">
+        <span class="card-label">Transcrição / Resumo Gong</span>
+        <span class="card-hint" id="char-count">0 caracteres</span>
+      </div>
+      <textarea id="transcript" rows="8"
+        placeholder="Cole aqui a transcrição ou o resumo do e-mail do Gong..."
+        oninput="updateCharCount(this)"></textarea>
+    </div>
+
+    <!-- Generate -->
+    <div class="btn-row fade-in" style="animation-delay:.15s">
+      <button class="btn btn-gen" id="btn-gen" onclick="generateSPIN()">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7.5 1v2M7.5 12v2M1 7.5h2M12 7.5h2M3 3l1.5 1.5M10.5 10.5L12 12M3 12l1.5-1.5M10.5 4.5L12 3"/></svg>
+        Gerar insights SPIN
+      </button>
+      <button class="btn btn-ghost" onclick="clearAll()">Limpar</button>
+    </div>
+
+    <div class="progress-bar" id="prog-bar"><div class="progress-fill" id="prog-fill"></div></div>
+    <div class="status-bar" id="gen-status"></div>
+
+    <!-- SPIN Output -->
+    <div id="spin-section" style="display:none" class="fade-in">
+      <div class="card" style="margin-top:20px">
+        <div class="card-head">
+          <span class="card-label">Análise SPIN</span>
+          <button class="btn btn-ghost" onclick="regenerate()" style="font-size:12px">↺ Regerar</button>
+        </div>
+        <div class="spin-grid">
+          <div class="spin-block">
+            <div class="spin-top"><span class="spin-letter">S</span><span class="spin-name">Situation</span></div>
+            <textarea id="spin-s" rows="5" placeholder="Contexto atual..."></textarea>
+          </div>
+          <div class="spin-block">
+            <div class="spin-top"><span class="spin-letter">P</span><span class="spin-name">Problem</span></div>
+            <textarea id="spin-p" rows="5" placeholder="Dores identificadas..."></textarea>
+          </div>
+          <div class="spin-block">
+            <div class="spin-top"><span class="spin-letter">I</span><span class="spin-name">Implication</span></div>
+            <textarea id="spin-i" rows="5" placeholder="Impacto do problema..."></textarea>
+          </div>
+          <div class="spin-block">
+            <div class="spin-top"><span class="spin-letter">N</span><span class="spin-name">Need Payoff</span></div>
+            <textarea id="spin-n" rows="5" placeholder="Valor esperado..."></textarea>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div style="margin-bottom:6px;font-size:11px;font-family:var(--mono);color:var(--txt3);letter-spacing:.5px;text-transform:uppercase">Sinais de Compra</div>
+        <div class="signals-row">
+          <div class="sig-wrap">
+            <label>Urgência</label>
+            <select id="sig-u"><option value="">—</option><option>Alta</option><option>Média</option><option>Baixa</option><option>Não identificada</option></select>
+          </div>
+          <div class="sig-wrap">
+            <label>Interesse</label>
+            <select id="sig-i"><option value="">—</option><option>Alto</option><option>Médio</option><option>Baixo</option><option>Não identificado</option></select>
+          </div>
+          <div class="sig-wrap">
+            <label>Prioridade</label>
+            <select id="sig-p"><option value="">—</option><option>Alta</option><option>Média</option><option>Baixa</option><option>Não identificada</option></select>
+          </div>
+        </div>
+        <div style="margin-bottom:14px">
+          <div style="font-size:11px;font-family:var(--mono);color:var(--txt3);margin-bottom:5px;letter-spacing:.5px;text-transform:uppercase">Stakeholders</div>
+          <input type="text" id="stakeholders" placeholder="ex: VP de Vendas, CTO, Head de Marketing">
+        </div>
+
+        <div class="divider"></div>
+
+        <div style="margin-bottom:8px;font-size:11px;font-family:var(--mono);color:var(--txt3);letter-spacing:.5px;text-transform:uppercase">Próximos Passos</div>
+        <textarea id="next-steps" rows="3" placeholder="Próximos passos acordados, ações pendentes, follow-up..."></textarea>
+
+        <div class="divider"></div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btn-post" onclick="postToHubSpot()">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7.5h11M9 3l4.5 4.5L9 12"/></svg>
+            Postar no HubSpot
+          </button>
+          <button class="btn btn-secondary" onclick="copyNote()">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="4" width="8" height="8" rx="2"/><path d="M2 10V2h8"/></svg>
+            Copiar nota
+          </button>
+        </div>
+        <div class="status-bar" id="post-status"></div>
+      </div>
+    </div>
+
+  </div><!-- /page-new -->
+
+  <!-- ══════════ PAGE: HISTÓRICO ══════════ -->
+  <div class="page" id="page-history">
+    <div class="page-header">
+      <h1 class="page-title">Histórico</h1>
+      <p class="page-desc">Todas as análises SPIN geradas neste dispositivo.</p>
+    </div>
+    <div id="history-list"></div>
+  </div>
+
+  <!-- ══════════ PAGE: SETTINGS ══════════ -->
+  <div class="page" id="page-settings">
+    <div class="page-header">
+      <h1 class="page-title">Configurações</h1>
+      <p class="page-desc">Credenciais salvas localmente no seu browser — nunca enviadas para terceiros.</p>
+    </div>
+
+    <div class="settings-card">
+      <div class="settings-title">Token HubSpot</div>
+      <div class="settings-desc">Token privado com permissões <code>crm.objects.contacts.read</code> e <code>engagements.write</code>.<br>
+        Obter em: HubSpot → Configurações → Integrações → Aplicativos privados.</div>
+      <div class="field-row">
+        <div class="field-label">Private App Token</div>
+        <input type="password" id="hs-token-input" placeholder="pat-na1-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="btn btn-primary" onclick="saveToken()" style="font-size:14px;padding:10px 22px">Salvar token</button>
+        <span class="save-badge" id="token-saved">✓ salvo</span>
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <div class="settings-title">Dados</div>
+      <div class="settings-desc">Gerencie os dados salvos localmente.</div>
+      <button class="btn btn-secondary" onclick="clearHistory()" style="font-size:13px">Limpar histórico</button>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<script>
+/* ─────────────────────────────────────────
+   STATE
+───────────────────────────────────────── */
+let dealId = null;
+let contactData = {};
+let debounce = null;
+let history = JSON.parse(localStorage.getItem('spin_history') || '[]');
+
+/* ─────────────────────────────────────────
+   NAVIGATION
+───────────────────────────────────────── */
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  event?.target?.closest('.nav-item')?.classList.add('active');
+  if (name === 'history') renderHistory();
+}
+
+/* ─────────────────────────────────────────
+   UTILS
+───────────────────────────────────────── */
+function g(id) { return document.getElementById(id)?.value?.trim() || ''; }
+function el(id) { return document.getElementById(id); }
+
+function getDealId(url) {
+  const t = url.trim();
+  const m = t.match(/\/deal\/(\d+)/) || t.match(/\/record\/0-3\/(\d+)/);
+  if (m) return m[1];
+  if (/^\d{6,}$/.test(t)) return t;
+  return null;
+}
+
+function getToken() {
+  return (localStorage.getItem('hs_token') || '').trim();
+}
+
+function updateCharCount(ta) {
+  el('char-count').textContent = ta.value.length.toLocaleString('pt-BR') + ' caracteres';
+}
+
+function setStep(n) {
+  for (let i = 1; i <= 4; i++) {
+    const s = el('step' + i);
+    s.className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
+    if (i < n) s.querySelector('.step-n').innerHTML = '✓';
+    else s.querySelector('.step-n').textContent = i;
+  }
+}
+
+function showStatus(id, msg, type) {
+  const e = el(id);
+  e.innerHTML = msg;
+  e.className = 'status-bar show ' + type;
+  if (type !== 'inf') setTimeout(() => e.className = 'status-bar', 7000);
+}
+
+function setProgress(pct) {
+  el('prog-fill').style.width = pct + '%';
+}
+
+/* ─────────────────────────────────────────
+   DEAL INPUT
+───────────────────────────────────────── */
+function onDealInput(val) {
+  clearTimeout(debounce);
+  const id = getDealId(val);
+  if (!id) { dealId = null; el('contact-pill').classList.remove('show'); el('deal-id-preview').textContent = ''; return; }
+  dealId = id;
+  el('deal-id-preview').textContent = '#' + id;
+  setStep(2);
+  debounce = setTimeout(() => fetchContact(id), 600);
+}
+
+async function fetchContact(id) {
+  const token = getToken();
+  if (!token) {
+    showContactPill({ name: '⚠ Configure o token nas Configurações', email: '', company: '' }, false);
+    return;
+  }
+  el('pill-status').textContent = 'buscando...';
+  el('contact-pill').classList.add('show');
+
+  try {
+    const r = await fetch(`https://api.hubapi.com/crm/v3/objects/deals/${id}/associations/contacts`, {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    const d = await r.json();
+    const contacts = d.results || [];
+    if (!contacts.length) { showContactPill({ name: 'Nenhum contato associado', email: '', company: '' }, false); return; }
+
+    const cr = await fetch(`https://api.hubapi.com/crm/v3/objects/contacts/${contacts[0].id}?properties=firstname,lastname,email,company`, {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    const cd = await cr.json();
+    const p = cd.properties || {};
+    showContactPill({
+      name: [p.firstname, p.lastname].filter(Boolean).join(' ') || 'Sem nome',
+      email: p.email || '',
+      company: p.company || ''
+    }, true);
+  } catch(e) {
+    showContactPill({ name: 'Erro: ' + e.message, email: '', company: '' }, false);
+  }
+}
+
+function showContactPill(c, ok) {
+  contactData = c;
+  el('contact-pill').classList.add('show');
+  el('av').textContent = (c.name || '?').split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+  el('c-name').textContent = c.name;
+  el('c-email').textContent = c.email;
+  el('c-company').textContent = c.company;
+  el('pill-status').textContent = ok ? '✓ contato encontrado' : '⚠ verifique';
+  el('av').style.background = ok ? 'var(--grn)' : 'var(--gold)';
+}
+
+/* ─────────────────────────────────────────
+   GENERATE SPIN
+───────────────────────────────────────── */
+async function generateSPIN() {
+  const transcript = el('transcript').value.trim();
+  if (!transcript) { showStatus('gen-status', '⚠ Cole a transcrição antes de gerar.', 'err'); return; }
+
+  const btn = el('btn-gen');
+  btn.disabled = true;
+  btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="7" cy="7" r="5" stroke-dasharray="20" stroke-dashoffset="5"><animateTransform attributeName="transform" type="rotate" from="0 7 7" to="360 7 7" dur=".7s" repeatCount="indefinite"/></circle></svg> Analisando...`;
+
+  el('prog-bar').classList.add('show');
+  setProgress(15);
+  showStatus('gen-status', 'Analisando transcrição com Claude...', 'inf');
+  setStep(3);
+
+  const contactCtx = contactData.name ? `Contato: ${contactData.name}${contactData.company ? ' — ' + contactData.company : ''}` : '';
+
+  const prompt = `Você é um especialista em vendas B2B e metodologia SPIN Selling. Analise a transcrição/resumo abaixo e extraia os insights SPIN com linguagem executiva, objetiva e acionável.
+
+${contactCtx}
+
+TRANSCRIÇÃO:
+${transcript}
+
+Responda APENAS em JSON puro (sem markdown, sem \`\`\`), exatamente neste formato:
+{
+  "situation": "...",
+  "problem": "...",
+  "implication": "...",
+  "need_payoff": "...",
+  "urgency": "Alta|Média|Baixa|Não identificada",
+  "interest": "Alto|Médio|Baixo|Não identificado",
+  "priority": "Alta|Média|Baixa|Não identificada",
+  "stakeholders": "...",
+  "next_steps": "..."
+}
+
+Regras:
+- Se algo não foi mencionado: "Não identificado durante a reunião."
+- Extraia APENAS o que foi dito — nunca invente
+- Foque em informações que ajudam a avançar o deal
+- Use bullet points onde fizer sentido dentro dos valores`;
+
+  setProgress(40);
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1500,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    setProgress(75);
+    const data = await res.json();
+    const raw = data.content?.[0]?.text || '';
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+
+    setProgress(100);
+
+    el('spin-s').value = parsed.situation || '';
+    el('spin-p').value = parsed.problem || '';
+    el('spin-i').value = parsed.implication || '';
+    el('spin-n').value = parsed.need_payoff || '';
+    el('stakeholders').value = parsed.stakeholders || '';
+    el('next-steps').value = parsed.next_steps || '';
+    setSelect('sig-u', parsed.urgency);
+    setSelect('sig-i', parsed.interest);
+    setSelect('sig-p', parsed.priority);
+
+    el('spin-section').style.display = 'block';
+    el('spin-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    showStatus('gen-status', '✓ SPIN gerado. Revise os campos e clique em Postar.', 'ok');
+    setStep(4);
+
+  } catch(e) {
+    showStatus('gen-status', '✗ Erro: ' + e.message, 'err');
+    setStep(2);
+  }
+
+  setTimeout(() => { el('prog-bar').classList.remove('show'); setProgress(0); }, 600);
+  btn.disabled = false;
+  btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7.5 1v2M7.5 12v2M1 7.5h2M12 7.5h2M3 3l1.5 1.5M10.5 10.5L12 12M3 12l1.5-1.5M10.5 4.5L12 3"/></svg> Gerar insights SPIN`;
+}
+
+function regenerate() { generateSPIN(); }
+
+function setSelect(id, val) {
+  const s = el(id);
+  for (const o of s.options) { if (o.value === val || o.text === val) { s.value = o.value; return; } }
+}
+
+/* ─────────────────────────────────────────
+   BUILD NOTE
+───────────────────────────────────────── */
+function buildNote() {
+  const date = new Date().toLocaleDateString('pt-BR');
+  const c = contactData;
+  return `📋 SPIN SUMMARY — ${c.company || c.name || 'Prospect'} | ${date}
+${c.name ? '👤 ' + c.name + (c.email ? ' <' + c.email + '>' : '') : ''}
+
+━━━ SITUATION ━━━
+${g('spin-s') || 'Não identificado durante a reunião.'}
+
+━━━ PROBLEM ━━━
+${g('spin-p') || 'Não identificado durante a reunião.'}
+
+━━━ IMPLICATION ━━━
+${g('spin-i') || 'Não identificado durante a reunião.'}
+
+━━━ NEED PAYOFF ━━━
+${g('spin-n') || 'Não identificado durante a reunião.'}
+
+━━━ BUYING SIGNALS ━━━
+Urgência: ${g('sig-u') || 'Não identificada'}
+Interesse: ${g('sig-i') || 'Não identificado'}
+Prioridade: ${g('sig-p') || 'Não identificada'}
+Stakeholders: ${g('stakeholders') || 'Não identificados'}
+
+━━━ NEXT STEPS ━━━
+${g('next-steps') || 'A definir.'}`;
+}
+
+/* ─────────────────────────────────────────
+   POST TO HUBSPOT
+───────────────────────────────────────── */
+async function postToHubSpot() {
+  if (!dealId) { showStatus('post-status', '⚠ ID do deal não encontrado. Verifique o link.', 'err'); return; }
+  const token = getToken();
+  if (!token) { showStatus('post-status', '⚠ Configure o token HubSpot nas Configurações.', 'err'); return; }
+
+  const btn = el('btn-post');
+  btn.classList.add('loading');
+  btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="7" cy="7" r="5" stroke-dasharray="20" stroke-dashoffset="5"><animateTransform attributeName="transform" type="rotate" from="0 7 7" to="360 7 7" dur=".7s" repeatCount="indefinite"/></circle></svg> Postando...`;
+
+  const noteBody = buildNote();
+
+  try {
+    const res = await fetch('https://api.hubapi.com/engagements/v1/engagements', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({
+        engagement: { active: true, type: 'NOTE' },
+        associations: { dealIds: [parseInt(dealId)] },
+        metadata: { body: noteBody }
+      })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      btn.classList.remove('loading');
+      btn.classList.add('success');
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7l4 4 6-7"/></svg> Postado!`;
+      showStatus('post-status', '✓ Nota criada no deal ' + dealId + ' com sucesso.', 'ok');
+
+      // Save to history
+      saveToHistory({
+        id: data.engagement?.id,
+        dealId,
+        contactName: contactData.name || '—',
+        company: contactData.company || '—',
+        date: new Date().toISOString(),
+        preview: g('spin-s').slice(0, 120)
+      });
+
+      setTimeout(() => {
+        btn.classList.remove('success');
+        btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7.5h11M9 3l4.5 4.5L9 12"/></svg> Postar no HubSpot`;
+      }, 5000);
+    } else {
+      const err = await res.json().catch(() => ({}));
+      btn.classList.remove('loading');
+      btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7.5h11M9 3l4.5 4.5L9 12"/></svg> Postar no HubSpot`;
+      showStatus('post-status', '✗ Erro ' + res.status + ': ' + (err.message || 'verifique token e deal.'), 'err');
+    }
+  } catch(e) {
+    btn.classList.remove('loading');
+    btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7.5h11M9 3l4.5 4.5L9 12"/></svg> Postar no HubSpot`;
+    showStatus('post-status', '✗ Erro de rede: ' + e.message, 'err');
+  }
+}
+
+/* ─────────────────────────────────────────
+   COPY NOTE
+───────────────────────────────────────── */
+function copyNote() {
+  const text = buildNote();
+  if (navigator.clipboard && location.protocol !== 'file:') {
+    navigator.clipboard.writeText(text).then(() => {
+      showStatus('post-status', '✓ Nota copiada para a área de transferência.', 'ok');
+    }).catch(() => fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showStatus('post-status', '✓ Nota copiada para a área de transferência.', 'ok');
+  } catch(e) {
+    showStatus('post-status', '✗ Não foi possível copiar automaticamente.', 'err');
+  }
+  document.body.removeChild(ta);
+}
+
+/* ─────────────────────────────────────────
+   CLEAR
+───────────────────────────────────────── */
+function clearAll() {
+  ['hs-link','transcript','spin-s','spin-p','spin-i','spin-n','stakeholders','next-steps'].forEach(id => { const e = el(id); if(e) e.value = ''; });
+  ['sig-u','sig-i','sig-p'].forEach(id => { const e = el(id); if(e) e.selectedIndex = 0; });
+  el('contact-pill').classList.remove('show');
+  el('deal-id-preview').textContent = '';
+  el('spin-section').style.display = 'none';
+  el('gen-status').className = 'status-bar';
+  el('post-status').className = 'status-bar';
+  el('char-count').textContent = '0 caracteres';
+  dealId = null; contactData = {};
+  setStep(1);
+}
+
+/* ─────────────────────────────────────────
+   HISTORY
+───────────────────────────────────────── */
+function saveToHistory(item) {
+  history.unshift(item);
+  if (history.length > 50) history = history.slice(0, 50);
+  localStorage.setItem('spin_history', JSON.stringify(history));
+}
+
+function renderHistory() {
+  const list = el('history-list');
+  if (!history.length) {
+    list.innerHTML = `<div class="history-empty"><span class="big">—</span>Nenhuma análise ainda. Crie a primeira na aba "Nova análise".</div>`;
+    return;
+  }
+  list.innerHTML = history.map(h => `
+    <div class="hist-item">
+      <div class="hist-head">
+        <span class="hist-name">${h.contactName}</span>
+        <span class="hist-date">${new Date(h.date).toLocaleDateString('pt-BR', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</span>
+      </div>
+      <div class="hist-company">${h.company}</div>
+      <div class="hist-preview">${h.preview}</div>
+      <span class="hist-tag">deal #${h.dealId}</span>
+    </div>
+  `).join('');
+}
+
+function clearHistory() {
+  if (confirm('Limpar todo o histórico?')) {
+    history = []; localStorage.removeItem('spin_history');
+    renderHistory();
+  }
+}
+
+/* ─────────────────────────────────────────
+   SETTINGS
+───────────────────────────────────────── */
+function saveToken() {
+  const val = el('hs-token-input').value.trim();
+  localStorage.setItem('hs_token', val);
+  const badge = el('token-saved');
+  badge.classList.add('show');
+  setTimeout(() => badge.classList.remove('show'), 3000);
+}
+
+/* ─────────────────────────────────────────
+   INIT
+───────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', () => {
+  const token = localStorage.getItem('hs_token');
+  if (token) el('hs-token-input').value = token;
+});
+</script>
+</body>
+</html>
